@@ -1,4 +1,5 @@
-# hi94740-calendar-feeds-ui
+# hi94740的日历订阅UI
+通过简单UI方便地配置hi94740提供的日历订阅服务
 
 ## Project setup
 ```
