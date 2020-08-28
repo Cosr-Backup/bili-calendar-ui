@@ -11,10 +11,16 @@
                 <v-tooltip bottom>
                   <template v-slot:activator="{on}">
                     <v-btn href="" icon large target="_blank" v-on="on">
-                      <v-icon>mdi-code-tags</v-icon>
+                      <v-icon>mdi-help-circle-outline</v-icon>
                     </v-btn>
                   </template>
-                  <span>以后还会增加更多功能！</span>
+                  <span>
+                    b站uid在哪找？
+                    <br>
+                    在b站app【我的】-【空间】-【编辑资料】页面可以找到
+                    <br>
+                    网页端可以在【个人空间】右侧栏下面找到
+                  </span>
                 </v-tooltip>
               </v-toolbar>
               <v-card-text>
@@ -70,6 +76,12 @@
     computed: {
       isBUIDvalid() {
         return /^[1-9]\d*$/.test(this.buid) && parseInt(this.buid) > 0
+      }
+    },
+
+    watch: {
+      buid(buid) {
+        if (buid.startsWith("uid:")) this.buid = buid.replace("uid:", "")
       }
     },
 
