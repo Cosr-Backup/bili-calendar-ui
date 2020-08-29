@@ -16,9 +16,9 @@
                   </template>
                   <span>
                     b站uid在哪找？
-                    <br>
+                    <br />
                     在b站app【我的】-【空间】-【编辑资料】页面可以找到
-                    <br>
+                    <br />
                     网页端可以在【个人空间】右侧栏下面找到
                   </span>
                 </v-tooltip>
@@ -26,20 +26,45 @@
               <v-card-text>
                 <v-form>
                   <v-text-field
-                    v-model="buid"
-                    label="输入你的b站uid来定制追番日历"
+                    v-model="inputBuid"
+                    :label="cantFetchCalendar ? '输入你的b站uid来定制追番日历' : '请确认你的b站昵称'"
                     name="buid"
                     prepend-icon="mdi-account"
                     type="text"
-                    :rules="[validateBUID]"
-                  ></v-text-field>
+                    color="secondary"
+                    :rules="[buidInputErrorMsg]"
+                    :disabled="loadingBuidStats || !cantFetchCalendar"
+                  >
+                    <!-- <template #prepend-inner
+                      ><v-avatar v-if="!cantFetchCalendar">
+                        <img
+                          :src="buidStats.userInfo.data.face"
+                          :alt="buidStats.userInfo.data.name"
+                        /> </v-avatar
+                    ></template> -->
+                  </v-text-field>
                 </v-form>
               </v-card-text>
-              <v-card-actions>
+              <v-card-actions
+                ><v-btn
+                  v-if="!cantFetchCalendar"
+                  color="secondary"
+                  text
+                  @click="clearStats"
+                  >上一步</v-btn
+                >
                 <v-spacer></v-spacer>
                 <v-btn
-                  color="primary"
+                  v-if="cantFetchCalendar"
+                  color="secondary"
                   :disabled="!isBUIDvalid"
+                  :loading="loadingBuidStats"
+                  @click="loadBuidStats"
+                  >下一步</v-btn
+                >
+                <v-btn
+                  v-if="!cantFetchCalendar"
+                  color="primary"
                   outlined
                   v-clipboard:copy="
                     'https://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
@@ -48,12 +73,14 @@
                   >拷贝ics链接</v-btn
                 >
                 <v-btn
-                  color="primary"
-                  :disabled="!isBUIDvalid"
+                  v-if="!cantFetchCalendar"
+                  color="secondary"
                   :href="
                     'webcal://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
                       buid
                   "
+                  :loading="fakeLoading"
+                  @click="fakeLoad"
                   >订阅日历</v-btn
                 >
               </v-card-actions>
@@ -70,12 +97,36 @@
     name: "App",
 
     data: () => ({
-      buid: ""
+      buid: "",
+      fakeLoading: false,
+      buidStats: null,
+      loadingBuidStats: false
     }),
 
     computed: {
       isBUIDvalid() {
         return /^[1-9]\d*$/.test(this.buid) && parseInt(this.buid) > 0
+      },
+      cantFetchCalendar() {
+        if (this.buidStats) {
+          if (this.buidStats.userInfo.code != 0)
+            return this.buidStats.userInfo.message
+          else if (this.buidStats.bangumiFollow.code != 0)
+            return this.buidStats.bangumiFollow.message
+          else if (this.buidStats.bangumiFollow.data.list.length === 0)
+            return "你还没订阅番剧呢！"
+          else return false
+        } else return true
+      },
+      inputBuid: {
+        get() {
+          return this.cantFetchCalendar
+            ? this.buid
+            : this.buidStats.userInfo.data.name
+        },
+        set(buid) {
+          this.buid = buid
+        }
       }
     },
 
@@ -86,8 +137,33 @@
     },
 
     methods: {
-      validateBUID() {
-        return this.isBUIDvalid || "uid必须是数字！"
+      buidInputErrorMsg(buid) {
+        return this.buidStats?.userInfo?.data?.mid == buid
+          ? typeof this.cantFetchCalendar == "string"
+            ? this.cantFetchCalendar
+            : true
+          : buid === "" || this.isBUIDvalid || "uid必须是数字！"
+      },
+      fakeLoad() {
+        this.fakeLoading = true
+        setTimeout(() => (this.fakeLoading = false), 2000)
+      },
+      async loadBuidStats() {
+        this.loadingBuidStats = true
+        const buid = this.buid
+        this.buidStats = await (
+          await fetch(
+            "https://calendars.hi94740.workers.dev/bilibili/uid/validate?uid=" +
+              buid
+          )
+        ).json()
+        this.buid = ""
+        this.$nextTick(() => (this.buid = buid))
+        this.loadingBuidStats = false
+      },
+      clearStats() {
+        this.buid = ''
+        this.buidStats = null
       }
     }
   }
