@@ -1,5 +1,5 @@
 <template>
-  <v-app id="inspire">
+  <v-app id="inspire" v-wechat-title="pageTitle">
     <v-main>
       <v-container class="fill-height" fluid>
         <v-row align="center" justify="center">
@@ -27,21 +27,34 @@
                 <v-form>
                   <v-text-field
                     v-model="inputBuid"
-                    :label="cantFetchCalendar ? '输入你的b站uid来定制追番日历' : '请确认你的b站昵称'"
+                    :label="
+                      cantFetchCalendar
+                        ? '输入你的b站uid来定制追番日历'
+                        : '请确认你的账号信息'
+                    "
                     name="buid"
-                    prepend-icon="mdi-account"
+                    :prepend-icon="
+                      cantFetchCalendar ? 'mdi-account' : undefined
+                    "
                     type="text"
                     color="secondary"
                     :rules="[buidInputErrorMsg]"
-                    :disabled="loadingBuidStats || !cantFetchCalendar"
+                    :disabled="loadingBuidStats"
+                    :readonly="!cantFetchCalendar"
+                    :loading="loadingBuidStats"
                   >
-                    <!-- <template #prepend-inner
-                      ><v-avatar v-if="!cantFetchCalendar">
+                    <template #prepend-inner
+                      ><v-avatar
+                        v-if="!cantFetchCalendar"
+                        size="24"
+                        left
+                        style="margin-right:5px"
+                      >
                         <img
                           :src="buidStats.userInfo.data.face"
                           :alt="buidStats.userInfo.data.name"
                         /> </v-avatar
-                    ></template> -->
+                    ></template>
                   </v-text-field>
                 </v-form>
               </v-card-text>
@@ -51,7 +64,7 @@
                   color="secondary"
                   text
                   @click="clearStats"
-                  >上一步</v-btn
+                  ><v-icon left>mdi-chevron-left</v-icon>上一步</v-btn
                 >
                 <v-spacer></v-spacer>
                 <v-btn
@@ -60,7 +73,7 @@
                   :disabled="!isBUIDvalid"
                   :loading="loadingBuidStats"
                   @click="loadBuidStats"
-                  >下一步</v-btn
+                  >下一步<v-icon right>mdi-arrow-right</v-icon></v-btn
                 >
                 <v-btn
                   v-if="!cantFetchCalendar"
@@ -70,7 +83,7 @@
                     'https://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
                       buid
                   "
-                  >拷贝ics链接</v-btn
+                  ><v-icon left>mdi-link-variant</v-icon>拷贝ics链接</v-btn
                 >
                 <v-btn
                   v-if="!cantFetchCalendar"
@@ -81,7 +94,7 @@
                   "
                   :loading="fakeLoading"
                   @click="fakeLoad"
-                  >订阅日历</v-btn
+                  ><v-icon left>mdi-calendar-heart</v-icon>订阅日历</v-btn
                 >
               </v-card-actions>
             </v-card>
@@ -97,6 +110,7 @@
     name: "App",
 
     data: () => ({
+      pageTitle:"bilibili追番日历 by hi94740",
       buid: "",
       fakeLoading: false,
       buidStats: null,
@@ -153,8 +167,7 @@
         const buid = this.buid
         this.buidStats = await (
           await fetch(
-            "https://calendars.hi94740.workers.dev/bilibili/uid/validate?uid=" +
-              buid
+            process.env.VUE_APP_HOST + "bilibili/uid/validate?uid=" + buid
           )
         ).json()
         this.buid = ""
@@ -162,7 +175,7 @@
         this.loadingBuidStats = false
       },
       clearStats() {
-        this.buid = ''
+        this.buid = ""
         this.buidStats = null
       }
     }

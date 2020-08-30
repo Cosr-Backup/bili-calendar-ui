@@ -4,6 +4,7 @@ import vuetify from "./plugins/vuetify"
 import VueClipboard from "vue-clipboard2"
 
 Vue.use(VueClipboard)
+Vue.use(require('vue-wechat-title'))
 Vue.config.productionTip = false
 
 new Vue({
