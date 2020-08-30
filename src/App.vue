@@ -1,12 +1,17 @@
 <template>
   <v-app id="inspire" v-wechat-title="pageTitle">
+    <v-snackbar app top multi-line v-model="showError" color="error"
+      ><v-icon left>{{ errorIcon }}</v-icon
+      >{{ errorTitle }}<br />{{ errorMsg }}</v-snackbar
+    >
+
     <v-main>
       <v-container class="fill-height" fluid>
         <v-row align="center" justify="center">
           <v-col cols="12" sm="8" md="4">
             <v-card class="elevation-12">
               <v-toolbar color="primary" dark flat>
-                <v-toolbar-title>bilibili追番日历</v-toolbar-title>
+                <v-toolbar-title>bilibili追番日历 _(:з」∠)_</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <v-tooltip bottom>
                   <template v-slot:activator="{on}">
@@ -24,7 +29,7 @@
                 </v-tooltip>
               </v-toolbar>
               <v-card-text>
-                <v-form>
+                <v-form onsubmit="return false">
                   <v-text-field
                     v-model="inputBuid"
                     :label="
@@ -42,6 +47,8 @@
                     :disabled="loadingBuidStats"
                     :readonly="!cantFetchCalendar"
                     :loading="loadingBuidStats"
+                    :clearable="cantFetchCalendar"
+                    @keydown.enter="loadBuidStats"
                   >
                     <template #prepend-inner
                       ><v-avatar
@@ -111,11 +118,15 @@
     name: "App",
 
     data: () => ({
-      pageTitle:"bilibili追番日历 by hi94740",
+      pageTitle: "bilibili追番日历 by hi94740",
       buid: "",
       fakeLoading: false,
       buidStats: null,
-      loadingBuidStats: false
+      loadingBuidStats: false,
+      errorTitle: "出错了QAQ",
+      errorMsg: "骗你的嘿嘿😋",
+      errorIcon: "mdi-sync-alert",
+      showError: false
     }),
 
     computed: {
@@ -164,16 +175,27 @@
         setTimeout(() => (this.fakeLoading = false), 2000)
       },
       async loadBuidStats() {
-        this.loadingBuidStats = true
-        const buid = this.buid
-        this.buidStats = await (
-          await fetch(
-            process.env.VUE_APP_HOST + "bilibili/uid/validate?uid=" + buid
-          )
-        ).json()
-        this.buid = ""
-        this.$nextTick(() => (this.buid = buid))
-        this.loadingBuidStats = false
+        if (this.isBUIDvalid) {
+          this.loadingBuidStats = true
+          const buid = this.buid
+          try {
+            const res = await fetch(
+              process.env.VUE_APP_HOST + "bilibili/uid/validate?uid=" + buid
+            )
+            if (!res.ok) {
+              this.errorMsg = res.status + "：" + res.statusText
+              this.showError = true
+            }
+            this.buidStats = await res.json()
+          } catch (e) {
+            console.error(e)
+            this.errorMsg = e.toString()
+            this.showError = true
+          }
+          this.buid = ""
+          this.$nextTick(() => (this.buid = buid))
+          this.loadingBuidStats = false
+        }
       },
       clearStats() {
         this.buid = ""
