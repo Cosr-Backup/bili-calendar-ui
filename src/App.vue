@@ -47,7 +47,7 @@
                     :disabled="loadingBuidStats"
                     :readonly="!cantFetchCalendar"
                     :loading="loadingBuidStats"
-                    :clearable="cantFetchCalendar"
+                    :clearable="Boolean(cantFetchCalendar)"
                     @keydown.enter="loadBuidStats"
                   >
                     <template #prepend-inner
@@ -164,7 +164,7 @@
 
     methods: {
       buidInputErrorMsg(buid) {
-        return this.buidStats?.userInfo?.data?.mid == buid
+        return this.buidStats?.buid == buid
           ? typeof this.cantFetchCalendar == "string"
             ? this.cantFetchCalendar
             : true
@@ -186,7 +186,9 @@
               this.errorMsg = res.status + "：" + res.statusText
               this.showError = true
             }
-            this.buidStats = await res.json()
+            const stats = await res.json()
+            stats.buid = buid
+            this.buidStats = stats
           } catch (e) {
             console.error(e)
             this.errorMsg = e.toString()
