@@ -62,13 +62,14 @@
                 ><v-btn
                   v-if="!cantFetchCalendar"
                   color="secondary"
-                  text
+                  icon
                   @click="clearStats"
-                  ><v-icon left>mdi-chevron-left</v-icon>上一步</v-btn
+                  ><v-icon large>mdi-chevron-left</v-icon></v-btn
                 >
                 <v-spacer></v-spacer>
                 <v-btn
                   v-if="cantFetchCalendar"
+                  rounded
                   color="secondary"
                   :disabled="!isBUIDvalid"
                   :loading="loadingBuidStats"

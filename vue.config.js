@@ -1,4 +1,4 @@
-const resolve = (...args) => require("path").resolve(__dirname, ...args)
+// const resolve = (...args) => require("path").resolve(__dirname, ...args)
 
 module.exports = {
   transpileDependencies: ["vuetify"],
