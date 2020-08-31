@@ -50,12 +50,11 @@
                     :clearable="Boolean(cantFetchCalendar)"
                     @keydown.enter="loadBuidStats"
                   >
-                    <template #prepend-inner
+                    <template #prepend
                       ><v-avatar
                         v-if="!cantFetchCalendar"
-                        size="24"
-                        left
-                        style="margin-right:5px"
+                        size="34"
+                        style="left:-5px;top:-5px;margin-right:-5px"
                       >
                         <img
                           :src="buidStats.userInfo.data.face"
@@ -158,7 +157,7 @@
 
     watch: {
       buid(buid) {
-        if (buid.startsWith("uid:")) this.buid = buid.replace("uid:", "")
+        if (buid?.startsWith("uid:")) this.buid = buid.replace("uid:", "")
       }
     },
 
@@ -168,7 +167,10 @@
           ? typeof this.cantFetchCalendar == "string"
             ? this.cantFetchCalendar
             : true
-          : buid === "" || this.isBUIDvalid || "uid必须是数字！"
+          : this.buid == "" ||
+              this.buid == null ||
+              this.isBUIDvalid ||
+              "uid必须是数字！"
       },
       fakeLoad() {
         this.fakeLoading = true
