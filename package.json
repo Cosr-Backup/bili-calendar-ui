@@ -12,6 +12,7 @@
     "core-js": "^3.6.5",
     "favicons-webpack-plugin": "^4.2.0",
     "html-webpack-plugin": "^4.3.0",
+    "lodash-es": "^4.17.15",
     "superagent": "^6.0.0",
     "vue": "^2.6.11",
     "vue-clipboard2": "^0.3.1",

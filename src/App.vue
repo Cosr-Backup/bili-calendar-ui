@@ -17,24 +17,34 @@
                   v-model="showQA"
                   bottom
                   transition="slide-y-transition"
+                  :open-on-click="false"
+                  :open-on-focus="false"
+                  :open-on-hover="false"
                 >
-                  <template v-slot:activator>
-                    <v-btn icon large target="_blank" @click="showQA = !showQA">
-                      <v-icon>mdi-help-circle-outline</v-icon>
+                  <template #activator="{on}">
+                    <v-btn
+                      icon
+                      large
+                      target="_blank"
+                      @click="showQA = !showQA"
+                      v-click-outside="closeQA"
+                    >
+                      <v-icon>mdi-help-circle-outline</v-icon><span v-on="on" />
                     </v-btn>
                   </template>
                   <span>
-                    Q：为什么要输入uid？<br />
-                    A：因为要用来获取你的追番列表，以免在你的日历里显示你不看的番<br />
-                    <br />
                     Q：b站uid在哪找？<br />
                     app：【我的】-【空间】-【编辑资料】<br />
                     网页：可以在【个人空间】右侧栏下面找到<br />
                     <br />
                     Q：提示“用户隐私设置未公开”怎么办？<br />
-                    app：【我的】- 【空间】- 右上角三个点 - 【空间设置】-
+                    app：【我的】-【空间】- 右上角三个点 - 【空间设置】-
                     开启【公开显示订阅的番剧】<br />
-                    网页：【个人空间】-【设置】-【隐私设置】- 开启【追番追剧】
+                    网页：【个人空间】-【设置】-【隐私设置】-
+                    开启【追番追剧】<br />
+                    <br />
+                    Q：为什么要输入uid和公开追番？<br />
+                    A：因为要用来获取你的追番列表，以免在你的日历里显示你不看的番<br />
                   </span>
                 </v-tooltip>
               </v-toolbar>
@@ -55,12 +65,19 @@
                     pattern="\d*"
                     inputmode="numeric"
                     color="secondary"
+                    :hint="
+                      !cantFetchCalendar && showBackHint
+                        ? '点击左下角箭头可返回上一步'
+                        : undefined
+                    "
                     :rules="[buidInputErrorMsg]"
                     :disabled="loadingBuidStats"
                     :readonly="!cantFetchCalendar"
                     :loading="loadingBuidStats"
                     :clearable="Boolean(cantFetchCalendar)"
                     @keydown.enter="loadBuidStats"
+                    @click="clickInput"
+                    @blur="blurInput"
                   >
                     <template #prepend
                       ><v-avatar
@@ -136,7 +153,9 @@
       errorMsg: "骗你的嘿嘿😋",
       errorIcon: "mdi-sync-alert",
       showError: false,
-      showQA: false
+      showQA: false,
+      lastClickedReadonlyInput: 0,
+      showBackHint: false
     }),
 
     computed: {
@@ -162,21 +181,23 @@
         },
         set(buid) {
           this.buid = buid
+          if (typeof buid === "string" && !/^[1-9]\d*$/.test(buid))
+            this.$nextTick(
+              () =>
+                (this.buid =
+                  buid
+                    ?.match(/\d+/g)
+                    ?.join("")
+                    ?.match(/[1-9]\d*/g)?.[0] || "")
+            )
         }
       }
     },
 
     watch: {
-      buid(buid) {
-        this.$nextTick(() => {
-          if (typeof buid === "string") {
-            buid = buid.toLowerCase()
-            if (buid.startsWith("uid:")) this.buid = buid.replace("uid:", "")
-            const int = parseInt(this.buid)
-            this.buid = !isNaN(int) ? (Math.abs(int) || "") + "" : ""
-          }
-        })
-      }
+      // buid(buid) {
+      //   if (/^0+$/.test(buid)) this.$nextTick(() => (this.buid = ""))
+      // }
     },
 
     methods: {
@@ -202,10 +223,7 @@
             const res = await fetch(
               process.env.VUE_APP_HOST + "bilibili/uid/validate?uid=" + buid
             )
-            if (!res.ok) {
-              this.errorMsg = res.status + "：" + res.statusText
-              this.showError = true
-            }
+            if (!res.ok) throw res.status + "：" + res.statusText
             const stats = await res.json()
             stats.buid = buid
             this.buidStats = stats
@@ -222,6 +240,20 @@
       clearStats() {
         this.buid = ""
         this.buidStats = null
+      },
+      closeQA() {
+        this.showQA = false
+      },
+      clickInput() {
+        if (!this.cantFetchCalendar) {
+          const now = Date.now()
+          if (now - this.lastClickedReadonlyInput < 3000)
+            this.showBackHint = true
+          this.lastClickedReadonlyInput = now
+        }
+      },
+      blurInput() {
+        this.showBackHint = false
       }
     }
   }

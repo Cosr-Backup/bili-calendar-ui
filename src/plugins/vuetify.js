@@ -17,9 +17,9 @@ const vuetify = new Vuetify({
         error: colors.yellow.darken3
       },
       dark: {
-        primary: colors.cyan.darken2,
+        primary: colors.cyan,
         secondary: colors.cyan.darken1,
-        accent: colors.cyan.accent4
+        accent: colors.cyan.accent3
       }
     },
     dark: mql.matches
