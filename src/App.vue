@@ -13,18 +13,28 @@
               <v-toolbar color="primary" dark flat>
                 <v-toolbar-title>bilibili追番日历 _(:з」∠)_</v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-tooltip bottom>
-                  <template v-slot:activator="{on}">
-                    <v-btn href="" icon large target="_blank" v-on="on">
+                <v-tooltip
+                  v-model="showQA"
+                  bottom
+                  transition="slide-y-transition"
+                >
+                  <template v-slot:activator>
+                    <v-btn icon large target="_blank" @click="showQA = !showQA">
                       <v-icon>mdi-help-circle-outline</v-icon>
                     </v-btn>
                   </template>
                   <span>
-                    b站uid在哪找？
+                    Q：为什么要输入uid？<br />
+                    A：因为要用来获取你的追番列表，以免在你的日历里显示你不看的番<br />
                     <br />
-                    在b站app【我的】-【空间】-【编辑资料】页面可以找到
+                    Q：b站uid在哪找？<br />
+                    app：【我的】-【空间】-【编辑资料】<br />
+                    网页：可以在【个人空间】右侧栏下面找到<br />
                     <br />
-                    网页端可以在【个人空间】右侧栏下面找到
+                    Q：提示“用户隐私设置未公开”怎么办？<br />
+                    app：【我的】- 【空间】- 右上角三个点 - 【空间设置】-
+                    开启【公开显示订阅的番剧】<br />
+                    网页：【个人空间】-【设置】-【隐私设置】- 开启【追番追剧】
                   </span>
                 </v-tooltip>
               </v-toolbar>
@@ -42,6 +52,8 @@
                       cantFetchCalendar ? 'mdi-account' : undefined
                     "
                     type="text"
+                    pattern="\d*"
+                    inputmode="numeric"
                     color="secondary"
                     :rules="[buidInputErrorMsg]"
                     :disabled="loadingBuidStats"
@@ -64,46 +76,44 @@
                   </v-text-field>
                 </v-form>
               </v-card-text>
-              <v-card-actions
-                ><v-btn
-                  v-if="!cantFetchCalendar"
-                  color="secondary"
-                  icon
-                  @click="clearStats"
-                  ><v-icon large>mdi-chevron-left</v-icon></v-btn
-                >
-                <v-spacer></v-spacer>
-                <v-btn
-                  v-if="cantFetchCalendar"
-                  rounded
-                  color="secondary"
-                  :disabled="!isBUIDvalid"
-                  :loading="loadingBuidStats"
-                  @click="loadBuidStats"
-                  >下一步<v-icon right>mdi-arrow-right</v-icon></v-btn
-                >
-                <v-btn
-                  v-if="!cantFetchCalendar"
-                  color="primary"
-                  outlined
-                  v-clipboard:copy="
-                    'https://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
-                      buid
-                  "
-                  ><v-icon left>mdi-link-variant</v-icon>拷贝ics链接</v-btn
-                >
-                <v-btn
-                  v-if="!cantFetchCalendar"
-                  color="secondary"
-                  :href="
-                    'webcal://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
-                      buid
-                  "
-                  :loading="fakeLoading"
-                  @click="fakeLoad"
-                  ><v-icon left>mdi-calendar-heart</v-icon>订阅日历</v-btn
-                >
-              </v-card-actions>
+              <v-scroll-x-reverse-transition mode="out-in">
+                <v-card-actions v-if="cantFetchCalendar" key="step1actions">
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    rounded
+                    color="secondary"
+                    :disabled="!isBUIDvalid"
+                    :loading="loadingBuidStats"
+                    @click="loadBuidStats"
+                    >下一步<v-icon right>mdi-arrow-right</v-icon></v-btn
+                  >
+                </v-card-actions>
+                <v-card-actions v-else key="step2actions"
+                  ><v-btn color="secondary" icon @click="clearStats"
+                    ><v-icon large>mdi-chevron-left</v-icon></v-btn
+                  >
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    color="primary"
+                    outlined
+                    v-clipboard:copy="
+                      'https://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
+                        buid
+                    "
+                    ><v-icon left>mdi-link-variant</v-icon>拷贝ics链接</v-btn
+                  >
+                  <v-btn
+                    color="secondary"
+                    :href="
+                      'webcal://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
+                        buid
+                    "
+                    :loading="fakeLoading"
+                    @click="fakeLoad"
+                    ><v-icon left>mdi-calendar-heart</v-icon>订阅日历</v-btn
+                  >
+                </v-card-actions>
+              </v-scroll-x-reverse-transition>
             </v-card>
           </v-col>
         </v-row>
@@ -125,7 +135,8 @@
       errorTitle: "出错了QAQ",
       errorMsg: "骗你的嘿嘿😋",
       errorIcon: "mdi-sync-alert",
-      showError: false
+      showError: false,
+      showQA: false
     }),
 
     computed: {
@@ -157,7 +168,14 @@
 
     watch: {
       buid(buid) {
-        if (buid?.startsWith("uid:")) this.buid = buid.replace("uid:", "")
+        this.$nextTick(() => {
+          if (typeof buid === "string") {
+            buid = buid.toLowerCase()
+            if (buid.startsWith("uid:")) this.buid = buid.replace("uid:", "")
+            const int = parseInt(this.buid)
+            this.buid = !isNaN(int) ? (Math.abs(int) || "") + "" : ""
+          }
+        })
       }
     },
 
