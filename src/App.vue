@@ -49,13 +49,15 @@
                 </v-tooltip>
               </v-toolbar>
               <v-card-text>
-                <v-form onsubmit="return false">
+                <v-form @submit.prevent>
                   <v-text-field
                     v-model="inputBuid"
                     :label="
                       cantFetchCalendar
                         ? '输入你的b站uid来定制追番日历'
-                        : '请确认你的账号信息'
+                        : copySuccess
+                        ? '请确认你的账号信息'
+                        : '请手动选择并复制链接'
                     "
                     name="buid"
                     :prepend-icon="
@@ -76,6 +78,8 @@
                     :loading="loadingBuidStats"
                     :clearable="Boolean(cantFetchCalendar)"
                     @keydown.enter="loadBuidStats"
+                    @keydown="clickInput"
+                    @keydown.backspace="clearStats"
                     @click="clickInput"
                     @blur="blurInput"
                   >
@@ -110,15 +114,39 @@
                     ><v-icon large>mdi-chevron-left</v-icon></v-btn
                   >
                   <v-spacer></v-spacer>
-                  <v-btn
-                    color="primary"
-                    outlined
-                    v-clipboard:copy="
-                      'https://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=' +
-                        buid
+                  <v-tooltip
+                    top
+                    v-model="showCopyMsg"
+                    :color="copySuccess ? 'success' : 'error'"
+                    :transition="
+                      copySuccess
+                        ? 'scroll-y-reverse-transition'
+                        : 'slide-y-reverse-transition'
                     "
-                    ><v-icon left>mdi-link-variant</v-icon>拷贝ics链接</v-btn
+                    :open-on-click="false"
+                    :open-on-focus="false"
+                    :open-on-hover="false"
                   >
+                    <template #activator="{on}">
+                      <v-btn
+                        color="primary"
+                        outlined
+                        v-clipboard:copy="copyText"
+                        v-clipboard:success="copied"
+                        v-clipboard:error="copyError"
+                        ><v-icon left>mdi-link-variant</v-icon
+                        >拷贝ics链接</v-btn
+                      ><span v-on="on" />
+                    </template>
+                    <div>
+                      <v-icon left>{{
+                        copySuccess
+                          ? "mdi-clipboard-check-multiple"
+                          : "mdi-clipboard-alert-outline"
+                      }}</v-icon
+                      >{{ copySuccess ? "拷贝成功！" : "拷贝失败！" }}
+                    </div>
+                  </v-tooltip>
                   <v-btn
                     color="secondary"
                     :href="
@@ -140,8 +168,14 @@
 </template>
 
 <script>
+  import {debounce} from "lodash-es"
+  var copyFeedbackTrailing = () => {}
   export default {
     name: "App",
+
+    mounted() {
+      copyFeedbackTrailing = debounce(() => (this.showCopyMsg = false), 1000)
+    },
 
     data: () => ({
       pageTitle: "bilibili追番日历 by hi94740",
@@ -155,7 +189,9 @@
       showError: false,
       showQA: false,
       lastClickedReadonlyInput: 0,
-      showBackHint: false
+      showBackHint: false,
+      copySuccess: true,
+      showCopyMsg: false
     }),
 
     computed: {
@@ -177,7 +213,9 @@
         get() {
           return this.cantFetchCalendar
             ? this.buid
-            : this.buidStats.userInfo.data.name
+            : this.copySuccess
+            ? this.buidStats.userInfo.data.name
+            : this.copyText
         },
         set(buid) {
           this.buid = buid
@@ -191,6 +229,12 @@
                     ?.match(/[1-9]\d*/g)?.[0] || "")
             )
         }
+      },
+      copyText() {
+        return (
+          "https://calendars.hi94740.workers.dev/bilibili/bangumi.ics?uid=" +
+          this.buid
+        )
       }
     },
 
@@ -213,10 +257,10 @@
       },
       fakeLoad() {
         this.fakeLoading = true
-        setTimeout(() => (this.fakeLoading = false), 2000)
+        setTimeout(() => (this.fakeLoading = false), 1000)
       },
       async loadBuidStats() {
-        if (this.isBUIDvalid) {
+        if (this.isBUIDvalid && this.cantFetchCalendar) {
           this.loadingBuidStats = true
           const buid = this.buid
           try {
@@ -240,12 +284,17 @@
       clearStats() {
         this.buid = ""
         this.buidStats = null
+        this.copySuccess = true
       },
       closeQA() {
         this.showQA = false
       },
       clickInput() {
-        if (!this.cantFetchCalendar) {
+        if (!this.cantFetchCalendar && !this.copySuccess)
+          setTimeout(() => {
+            document.execCommand("selectall", null, false)
+          })
+        else if (!this.cantFetchCalendar) {
           const now = Date.now()
           if (now - this.lastClickedReadonlyInput < 3000)
             this.showBackHint = true
@@ -254,6 +303,18 @@
       },
       blurInput() {
         this.showBackHint = false
+      },
+      copyFeedback() {
+        this.showCopyMsg = true
+        copyFeedbackTrailing()
+      },
+      copied() {
+        this.copySuccess = true
+        this.copyFeedback()
+      },
+      copyError() {
+        this.copySuccess = false
+        this.copyFeedback()
       }
     }
   }
