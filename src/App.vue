@@ -174,7 +174,7 @@
     name: "App",
 
     mounted() {
-      copyFeedbackTrailing = debounce(() => (this.showCopyMsg = false), 1000)
+      copyFeedbackTrailing = debounce(() => (this.showCopyMsg = false), 1500)
     },
 
     data: () => ({
@@ -257,7 +257,7 @@
       },
       fakeLoad() {
         this.fakeLoading = true
-        setTimeout(() => (this.fakeLoading = false), 1000)
+        setTimeout(() => (this.fakeLoading = false), 4000)
       },
       async loadBuidStats() {
         if (this.isBUIDvalid && this.cantFetchCalendar) {
