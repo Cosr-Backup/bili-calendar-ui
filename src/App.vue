@@ -12,47 +12,54 @@
             <v-card class="elevation-12">
               <v-toolbar color="primary" dark flat>
                 <v-toolbar-title>bilibili追番日历 _(:з」∠)_</v-toolbar-title>
-                <v-spacer></v-spacer>
-                <v-tooltip
-                  v-model="showQA"
-                  bottom
-                  transition="slide-y-transition"
-                  :open-on-click="false"
-                  :open-on-focus="false"
-                  :open-on-hover="false"
-                >
-                  <template #activator="{on}">
-                    <v-btn
-                      icon
-                      large
-                      target="_blank"
-                      @click="showQA = !showQA"
-                      v-click-outside="closeQA"
-                    >
-                      <v-icon>mdi-help-circle-outline</v-icon><span v-on="on" />
+                <v-spacer />
+                <v-bottom-sheet v-model="showQA" inset scrollable>
+                  <template #activator="{on, attrs}">
+                    <v-btn icon large v-bind="attrs" v-on="on">
+                      <v-icon>mdi-help-circle-outline</v-icon>
                     </v-btn>
                   </template>
-                  <span>
-                    Q：b站uid在哪找？<br />
-                    app：【我的】-【空间】-【编辑资料】<br />
-                    网页：可以在【个人空间】右侧栏下面找到<br />
-                    <br />
-                    Q：提示“用户隐私设置未公开”怎么办？<br />
-                    app：【我的】-【空间】- 右上角三个点 - 【空间设置】-
-                    开启【公开显示订阅的番剧】<br />
-                    网页：【个人空间】-【设置】-【隐私设置】-
-                    开启【追番追剧】<br />
-                    <br />
-                    Q：为什么要输入uid和公开追番？<br />
-                    A：因为要用来获取你的追番列表，以免在你的日历里显示你不看的番<br />
-                    <br />
-                    Q：为什么点了【订阅日历】以后没有反应？<br />
-                    A：可能是你的系统日历不支持webcal，请拷贝ICS链接后使用微软
-                    Outlook 或者 Google 日历添加订阅<br />
-                    <br />
-                    联系作者：hi94740@qq.com
-                  </span>
-                </v-tooltip>
+                  <v-card class="rounded-b-0">
+                    <v-toolbar :flat="!raiseQAtitle" color="transparent">
+                      <v-toolbar-title>Q&A</v-toolbar-title>
+                      <v-spacer />
+                      <v-btn icon @click="showQA = false">
+                        <v-icon>mdi-close</v-icon>
+                      </v-btn>
+                    </v-toolbar>
+                    <v-card-text @scroll.passive="QAscrolling">
+                      <h3><b>Q：</b>b站uid在哪找？<br /></h3>
+                      <v-divider />
+                      app：【我的】-【空间】-【编辑资料】<br />
+                      网页：可以在【个人空间】右侧栏下面找到<br />
+                      <br />
+                      <h3><b>Q：</b>提示“用户隐私设置未公开”怎么办？<br /></h3>
+                      <v-divider />
+                      app：【我的】-【空间】- 右上角三个点 - 【空间设置】-
+                      开启【公开显示订阅的番剧】<br />
+                      网页：【个人空间】-【设置】-【隐私设置】-
+                      开启【追番追剧】<br />
+                      <br />
+                      <h3><b>Q：</b>为什么要输入uid和公开追番？<br /></h3>
+                      <v-divider />
+                      <b>A：</b
+                      >因为要用来获取你的追番列表，以免在你的日历里显示你不看的番<br />
+                      <br />
+                      <h3>
+                        <b>Q：</b>为什么点了【订阅日历】以后没有反应？<br />
+                      </h3>
+                      <v-divider />
+                      <b>A：</b
+                      >可能是你的系统日历不支持webcal，请拷贝ICS链接后使用微软
+                      Outlook 或者 Google 日历等支持 webcal
+                      订阅的日历软件添加订阅<br />
+                      <br />
+                      联系作者：<a href="mailto:hi94740@qq.com"
+                        >hi94740@qq.com</a
+                      >
+                    </v-card-text>
+                  </v-card>
+                </v-bottom-sheet>
               </v-toolbar>
               <v-card-text>
                 <v-form @submit.prevent>
@@ -85,7 +92,7 @@
                     :clearable="Boolean(cantFetchCalendar)"
                     @keydown.enter="loadBuidStats"
                     @keydown="clickInput"
-                    @keydown.backspace="clearStats"
+                    @keydown.backspace="!cantFetchCalendar && clearStats()"
                     @click="clickInput"
                     @blur="blurInput"
                   >
@@ -105,7 +112,7 @@
               </v-card-text>
               <v-scroll-x-reverse-transition mode="out-in">
                 <v-card-actions v-if="cantFetchCalendar" key="step1actions">
-                  <v-spacer></v-spacer>
+                  <v-spacer />
                   <v-btn
                     rounded
                     color="secondary"
@@ -119,7 +126,7 @@
                   ><v-btn color="secondary" icon @click="clearStats"
                     ><v-icon large>mdi-chevron-left</v-icon></v-btn
                   >
-                  <v-spacer></v-spacer>
+                  <v-spacer />
                   <v-tooltip
                     top
                     v-model="showCopyMsg"
@@ -175,13 +182,8 @@
 
 <script>
   import {debounce} from "lodash-es"
-  var copyFeedbackTrailing = () => {}
   export default {
     name: "App",
-
-    mounted() {
-      copyFeedbackTrailing = debounce(() => (this.showCopyMsg = false), 1500)
-    },
 
     data: () => ({
       pageTitle: "bilibili追番日历 by hi94740",
@@ -194,6 +196,7 @@
       errorIcon: "mdi-sync-alert",
       showError: false,
       showQA: false,
+      raiseQAtitle: false,
       lastClickedReadonlyInput: 0,
       showBackHint: false,
       copySuccess: true,
@@ -312,8 +315,11 @@
       },
       copyFeedback() {
         this.showCopyMsg = true
-        copyFeedbackTrailing()
+        this.copyFeedbackTrailing()
       },
+      copyFeedbackTrailing: debounce(function() {
+        this.showCopyMsg = false
+      }, 1500),
       copied() {
         this.copySuccess = true
         this.copyFeedback()
@@ -321,7 +327,10 @@
       copyError() {
         this.copySuccess = false
         this.copyFeedback()
-      }
+      },
+      QAscrolling: debounce(function(e) {
+        this.raiseQAtitle = e.target.scrollTop > 0
+      }, 100)
     }
   }
 </script>
