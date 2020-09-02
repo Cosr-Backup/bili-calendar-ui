@@ -45,6 +45,12 @@
                     <br />
                     Q：为什么要输入uid和公开追番？<br />
                     A：因为要用来获取你的追番列表，以免在你的日历里显示你不看的番<br />
+                    <br />
+                    Q：为什么点了【订阅日历】以后没有反应？<br />
+                    A：可能是你的系统日历不支持webcal，请拷贝ICS链接后使用微软
+                    Outlook 或者 Google 日历添加订阅<br />
+                    <br />
+                    联系作者：hi94740@qq.com
                   </span>
                 </v-tooltip>
               </v-toolbar>
@@ -139,7 +145,7 @@
                       ><span v-on="on" />
                     </template>
                     <div>
-                      <v-icon left>{{
+                      <v-icon left color="white">{{
                         copySuccess
                           ? "mdi-clipboard-check-multiple"
                           : "mdi-clipboard-alert-outline"
