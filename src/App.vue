@@ -1,5 +1,23 @@
 <template>
   <v-app id="inspire" v-wechat-title="pageTitle">
+    <v-banner
+      v-if="isWechatWebview"
+      app
+      single-line
+      dark
+      sticky
+      color="warning"
+    >
+      <v-icon slot="icon" large color="white">
+        mdi-alert
+      </v-icon>
+      请在浏览器中打开
+      <v-avatar slot="actions" color="deep-purple accent-4" size="40">
+        <v-icon color="white" class="jump-animation">
+          mdi-arrow-up-bold
+        </v-icon>
+      </v-avatar>
+    </v-banner>
     <v-snackbar app top multi-line v-model="showError" color="error"
       ><v-icon left>{{ errorIcon }}</v-icon
       >{{ errorTitle }}<br />{{ errorMsg }}</v-snackbar
@@ -28,6 +46,14 @@
                       </v-btn>
                     </v-toolbar>
                     <v-card-text @scroll.passive="QAscrolling">
+                      <h3>
+                        不会用怎么办？<v-icon color="accent"
+                          >mdi-open-in-new</v-icon
+                        ><a href="https://b23.tv/Biv1Jg" target="_blank"
+                          >查看视频教程</a
+                        >
+                      </h3>
+                      <br />
                       <h3><b>Q：</b>b站uid在哪找？<br /></h3>
                       <v-divider />
                       app：【我的】-【空间】-【编辑资料】<br />
@@ -49,12 +75,19 @@
                         <b>Q：</b>为什么点了【订阅日历】以后没有反应？<br />
                       </h3>
                       <v-divider />
-                      <b>A：</b
-                      >可能是你的系统日历不支持webcal，请拷贝ICS链接后使用微软
-                      Outlook 或者 Google 日历等支持 webcal
-                      订阅的日历软件添加订阅<br />
+                      <b>①</b>
+                      请检查是否是在微信等 app
+                      中打开本网页，请尽量使用系统自带浏览器打开
                       <br />
-                      联系作者：<a href="mailto:hi94740@qq.com"
+                      <b>②</b> iOS
+                      设备请耐心等待一会，系统需要一些时间验证日历是否有效<br />
+                      <b>③</b>
+                      如果在系统浏览器中也无法订阅，可能是你的系统日历不支持
+                      webcal，请拷贝 ICS 链接后使用微软 Outlook 或者 Google
+                      日历等支持 webcal 订阅的日历软件添加订阅<br />
+                      <br />
+                      <v-icon left>mdi-email-send-outline</v-icon>联系作者：<a
+                        href="mailto:hi94740@qq.com"
                         >hi94740@qq.com</a
                       >
                     </v-card-text>
@@ -200,7 +233,10 @@
       lastClickedReadonlyInput: 0,
       showBackHint: false,
       copySuccess: true,
-      showCopyMsg: false
+      showCopyMsg: false,
+      isWechatWebview: navigator.userAgent
+        .toLowerCase()
+        .includes("micromessenger")
     }),
 
     computed: {
@@ -334,3 +370,45 @@
     }
   }
 </script>
+
+<style scoped>
+  .jump-animation {
+    animation-name: jump;
+    animation-duration: 1.5s;
+    animation-timing-function: ease;
+    animation-delay: 0s;
+    animation-iteration-count: infinite;
+    animation-direction: normal;
+    animation-fill-mode: none;
+  }
+  @keyframes jump {
+    0% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    20% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    40% {
+      -webkit-transform: translateY(-30px);
+      transform: translateY(-30px);
+    }
+    50% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    60% {
+      -webkit-transform: translateY(-15px);
+      transform: translateY(-15px);
+    }
+    80% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+    100% {
+      -webkit-transform: translateY(0);
+      transform: translateY(0);
+    }
+  }
+</style>
