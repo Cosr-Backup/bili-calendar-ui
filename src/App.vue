@@ -152,7 +152,7 @@
                     :disabled="!isBUIDvalid"
                     :loading="loadingBuidStats"
                     @click="loadBuidStats"
-                    >下一步<v-icon right>mdi-arrow-right</v-icon></v-btn
+                    >下一步<v-icon right size="24">mdi-arrow-right</v-icon></v-btn
                   >
                 </v-card-actions>
                 <v-card-actions v-else key="step2actions"
@@ -180,7 +180,7 @@
                         v-clipboard:copy="copyText"
                         v-clipboard:success="copied"
                         v-clipboard:error="copyError"
-                        ><v-icon left>mdi-link-variant</v-icon
+                        ><v-icon left size="24">mdi-link-variant</v-icon
                         >拷贝ics链接</v-btn
                       ><span v-on="on" />
                     </template>
@@ -201,7 +201,7 @@
                     "
                     :loading="fakeLoading"
                     @click="fakeLoad"
-                    ><v-icon left>mdi-calendar-heart</v-icon>订阅日历</v-btn
+                    ><v-icon left size="24">mdi-calendar-heart</v-icon>订阅日历</v-btn
                   >
                 </v-card-actions>
               </v-scroll-x-reverse-transition>
