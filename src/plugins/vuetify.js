@@ -26,8 +26,12 @@ const vuetify = new Vuetify({
   }
 })
 
-const darkModeListener = ({matches}) => vuetify.framework.theme.dark = matches
-if (mql.addEventListener) mql.addEventListener("change",darkModeListener)
+const darkModeListener = ({matches}) => {
+  vuetify.framework.theme.dark = matches
+  document.body.style.backgroundColor = matches ? "#121212" : "#FFF"
+}
+darkModeListener(mql)
+if (mql.addEventListener) mql.addEventListener("change", darkModeListener)
 else mql.addListener(darkModeListener)
 
 export default vuetify
